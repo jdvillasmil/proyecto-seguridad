@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  fiscalia-backend:
+    build: ./fiscalia-service
+    container_name: fiscalia_container
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./fiscalia-service:/app
+      - /app/node_modules
+    environment:
+      - TRIBUNAL_URL=http://tribunal-backend:3000
+    networks:
+      - red-judicial
+
+  tribunal-backend:
+    build: ./tribunal-service
+    container_name: tribunal_container
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./tribunal-service:/app
+      - /app/node_modules
+    depends_on:
+      - tribunal-db
+    environment:
+      - DB_HOST=tribunal-db
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASS=secreto123
+      - DB_NAME=judicial_db
+    networks:
+      - red-judicial
+
+  tribunal-db:
+    image: postgres:15-alpine
+    container_name: tribunal_db_container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secreto123
+      POSTGRES_DB: judicial_db
+    ports:
+      - "5432:5432"
+    networks:
+      - red-judicial
+
+networks:
+  red-judicial:
+    driver: bridge
